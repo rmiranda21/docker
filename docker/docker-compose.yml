@@ -1,0 +1,76 @@
+version: '3.9'
+
+services:
+  proyecto-nch-bd:                  #servicios base de datos APP
+    container_name: mariadb-nch-db
+    image: mariadb:10.4.24
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: ${DB_DATABASE}
+      MARIADB_USER: ${DB_USERNAME}
+      MARIADB_PASSWORD: ${DB_PASSWORD}
+      MARIADB_ROOT_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - ${DB_PORT}:3306
+    volumes:
+      - ${DB_VOLUME}:/var/lib/mysql
+    networks:
+      proyecto-nch-network:
+
+  proyecto-nch-webserver:           #servicios frontend de APP
+    image: nginx:1.25.0-alpine
+    container_name: web-nch-front
+    restart: unless-stopped
+    ports:
+      - ${WEB_PORT}:80
+    volumes:
+      - ${WEB_VOLUME}:/var/www/public
+      - ${NGINX_CONF}:/etc/nginx/conf.d/default.conf
+      - ${LOGS_VOLUME}:/var/log/nginx
+    depends_on:
+      - proyecto-nch-app
+    networks:
+      proyecto-nch-network:
+
+  proyecto-nch-app:               #servicios backend de APP
+    build:
+      context: ${APP_CONTEXT}
+      dockerfile: ${APP_DOCKERFILE}
+    container_name: app-nch-backend
+    restart: unless-stopped
+    environment:
+      DB_HOST: ${DB_HOST}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_DATABASE: ${DB_DATABASE}
+      DB_PORT: 3306
+    volumes:
+      - ${APP_VOLUME}:/var/www
+      - ${PHP_INI}:/usr/local/etc/php/conf.d/local.ini
+    depends_on:
+      - proyecto-nch-bd
+    networks:
+      proyecto-nch-network:
+
+  phpmyadmin-nch:                   #servicio de phpadmin de APP
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin-nch-admin
+    restart: unless-stopped
+    environment:
+      PMA_HOST: ${DB_HOST}
+      PMA_USER: ${DB_USERNAME}
+      PMA_PASSWORD: ${DB_PASSWORD}
+      UPLOAD_LIMIT: 60048K
+    ports:
+      - "${PMA_PORT}:80"
+    depends_on:
+      - proyecto-nch-bd
+    networks:
+      proyecto-nch-network:
+
+networks:
+  proyecto-nch-network:               #red de los contenedores APP
+    driver: bridge
+
+volumes:
+  database-app:                 #Volumen APP
