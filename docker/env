@@ -1,0 +1,24 @@
+# variable de docker DB
+
+DB_HOST=proyecto-nch-bd
+DB_PORT=3307
+DB_DATABASE=proyecto_nch
+DB_USERNAME=root
+DB_PASSWORD=toor
+DB_VOLUME=../database-app
+# variable de docker frontend
+
+WEB_PORT=8080
+WEB_VOLUME=../public
+NGINX_CONF=./nginx/nginx.conf
+LOGS_VOLUME=../storage/logs
+
+# variable de docker backend
+
+APP_CONTEXT=./php
+APP_DOCKERFILE=Dockerfile
+APP_VOLUME=../
+PHP_INI=./php/php.ini
+
+# variable de docker phpadmin
+PMA_PORT=8081
